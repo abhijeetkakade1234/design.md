@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    @apply bg-surface text-on-surface font-body overflow-x-hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  /* Editorial Blob - Organic Background Shape */
+  .editorial-blob {
+    background: rgba(139, 0, 75, 0.08);
+    filter: blur(60px);
+    border-radius: 47% 53% 61% 39% / 45% 51% 49% 55%;
+  }
+
+  /* Glass Nav - Frosted Glass Navbar */
+  .glass-nav {
+    background: rgba(255, 252, 242, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  /* No-line shadow - Murrey ambient glow */
+  .no-line-shadow {
+    box-shadow: 0 8px 32px rgba(139, 0, 75, 0.08);
+  }
+
+  /* Syntax Highlighting Colors for code block */
+  .syntax-murrey { color: #ffa8c4; }
+  .syntax-keyword { color: #ecb4d0; }
+  .syntax-string { color: #fcc6d9; }
+
+  /* Custom Shapes */
+  .shape-squircle { border-radius: 32px; }
+  .shape-ring {
+    border: 1.5px solid #8B004B;
+    border-radius: 50%;
+  }
+
+  /* Dot Grid Pattern */
+  .dot-grid {
+    background-image: radial-gradient(#8B004B 1.5px, transparent 1.5px);
+    background-size: 8px 8px;
+  }
+
+  /* Diagonal Slash Pattern */
+  .diagonal-slash {
+    background: linear-gradient(45deg, transparent 48%, #8B004B 48%, #8B004B 52%, transparent 52%);
+  }
+}
+
+/* Material Symbols configuration */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Custom text selection */
+::selection {
+  background: rgba(139, 0, 75, 0.1);
+  color: #8B004B;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
