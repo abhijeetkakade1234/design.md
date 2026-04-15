@@ -3,6 +3,8 @@ import { useUsage } from "../hooks/useUsage";
 import { useNavigate } from "react-router-dom";
 import { User } from "firebase/auth";
 import { analyzeUI } from "../lib/gemini";
+import { buildColorMetadataFromMarkdown } from "../lib/colorMetadata";
+import { findFallbackMatchesFromImages } from "../lib/fallback";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { ProcessingDisplay } from "../components/ProcessingDisplay";
@@ -75,12 +77,15 @@ export const UploadPage: FC<UploadPageProps> = ({ user }) => {
     try {
       // 1. Ask Gemini to generate the markdown
       const result = await analyzeUI(images);
+      const metadata = buildColorMetadataFromMarkdown(result, 10);
       
       // 2. Save result to Firestore designs collection
       const docRef = await addDoc(collection(db, "designs"), {
         userId: user.uid,
         content: result,
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        palette: metadata.palette,
+        colorBuckets: metadata.colorBuckets,
       });
       
       // 3. Mark usage
@@ -90,10 +95,22 @@ export const UploadPage: FC<UploadPageProps> = ({ user }) => {
       navigate(`/design/${docRef.id}`);
       
     } catch (err) {
-      console.error("Failed to generate and save design:", err);
-      alert("There was an error generating your design. Please try again.");
-      processingRef.current = false;
-      setProcessing(false);
+      console.error("Gemini generation failed, attempting fallback matching:", err);
+      try {
+        const fallbackResult = await findFallbackMatchesFromImages(images, 8);
+        navigate("/fallback", {
+          state: {
+            ...fallbackResult,
+            sourceError: err instanceof Error ? err.message : "AI generation failed.",
+          },
+        });
+      } catch (fallbackError) {
+        console.error("Fallback matching also failed:", fallbackError);
+        alert("There was an error generating your design and finding fallback matches. Please try again.");
+      } finally {
+        processingRef.current = false;
+        setProcessing(false);
+      }
     }
   };
 

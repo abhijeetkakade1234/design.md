@@ -10,6 +10,7 @@ import { LandingPage } from "./pages/LandingPage";
 import { LoginPage } from "./pages/LoginPage";
 import { UploadPage } from "./pages/UploadPage";
 import { DesignViewPage } from "./pages/DesignViewPage";
+import { FallbackResultsPage } from "./pages/FallbackResultsPage";
 import { ShowcasePage, DashboardPage } from "./pages/ShowcasePage";
 
 function App() {
@@ -41,6 +42,7 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage user={user} />} />
           <Route path="/showcase" element={<ShowcasePage />} />
           <Route path="/design/:id" element={<DesignViewPage user={user} />} />
+          <Route path="/fallback" element={<FallbackResultsPage />} />
         </Routes>
       </AnimatePresence>
     </div>
