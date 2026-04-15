@@ -1,5 +1,6 @@
 import { FC } from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 interface HeroProps {
   onGoToUpload: () => void;
@@ -7,7 +8,7 @@ interface HeroProps {
 
 export const Hero: FC<HeroProps> = ({ onGoToUpload }) => {
   return (
-    <section className="relative min-h-screen pt-32 flex items-center overflow-hidden">
+    <section className="relative min-h-screen pt-20 flex items-center overflow-hidden">
       {/* Top-right blob cluster */}
       <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#8B004B]/15 editorial-blob -z-10 translate-x-1/4 -translate-y-1/4"></div>
       <div className="absolute top-10 right-20 w-32 h-32 shape-ring opacity-25 -z-10"></div>
@@ -57,9 +58,9 @@ export const Hero: FC<HeroProps> = ({ onGoToUpload }) => {
               Upload Images
               <span className="material-symbols-outlined">arrow_forward</span>
             </button>
-            <button className="bg-[#efefdb] text-[#373929] px-10 py-4 rounded-full text-lg font-medium hover:bg-[#e9ead2] transition-all">
+            <Link to="/showcase" className="bg-[#efefdb] text-[#373929] px-10 py-4 rounded-full text-lg font-medium hover:bg-[#e9ead2] transition-all inline-block">
               View Example
-            </button>
+            </Link>
           </motion.div>
         </div>
 

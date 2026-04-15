@@ -31,9 +31,7 @@ export const UploadDisplay: FC<UploadDisplayProps> = ({ onGoToUpload }) => {
         {/* Sample uploaded images */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mt-12">
           <div className="bg-white p-4 rounded-lg shadow-sm border border-[#b9bba5]/10 relative">
-            <div className="w-full h-32 bg-[#efefdb] rounded-md mb-4 flex items-center justify-center text-[#646653] text-sm font-body">
-              <span className="material-symbols-outlined text-3xl text-[#b52d6b]/40">image</span>
-            </div>
+            <img className="w-full h-32 object-cover rounded-md mb-4" alt="clean user interface design screenshot" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtKI2Mdnoin2qqReMt1E4iJjRuFk1MH3GpaWXsoKsy5WRgaE46PV-uMuEI9syDINnbR-DgFLOnODmOZm6nbgAIvllqsyE9_JeZo04ZOLC0bLEnZ_eLm2TJQlNNJYv9fpgwylQbbrS_zTGvIr4Sh0gjkdD-H4xfcdYM-y0dO07W_539spuzMbd32p8QWPfukn7pWk3tparrKW4xiPoDrsb2351S-Tm0RDaOLS_BERRV0lfHBn2fVZAEnOi5EO-Y2YrB9qzZ98F-aB8"/>
             <div className="h-1 w-full bg-[#f5f4e4] rounded-full overflow-hidden">
               <div className="h-full bg-[#b52d6b] w-[85%]"></div>
             </div>
@@ -42,9 +40,7 @@ export const UploadDisplay: FC<UploadDisplayProps> = ({ onGoToUpload }) => {
             </button>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm border border-[#b9bba5]/10 relative">
-            <div className="w-full h-32 bg-[#efefdb] rounded-md mb-4 flex items-center justify-center text-[#646653] text-sm font-body">
-              <span className="material-symbols-outlined text-3xl text-[#b52d6b]/40">image</span>
-            </div>
+            <img className="w-full h-32 object-cover rounded-md mb-4" alt="mobile app design dashboard" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbNzrDK9i8FqaKfKHOKmdW4bMBrIuiG44JrK7juYX4VotZIkHqHlCEnjA-ys81VnFgBd9F8Mxxkyh7fW1iexyw36N_Vp2Kw2oueQsc_Gra2YaASDyohYgx0RpYd4vDY-UUWVqi4W2YqEWbQPRth7KGBbp8mlbQdD00G6Ydy3v9rWx5eqeEjgIc4CvSRIai1jW3ZNCFeX5quidk0WgiJdKNnwwFjQNr2tiKESz6OH4Nj50EwLQymu9Tf40K35_e87hm8diW_KGv2QE"/>
             <div className="h-1 w-full bg-[#f5f4e4] rounded-full overflow-hidden">
               <div className="h-full bg-[#b52d6b] w-[100%]"></div>
             </div>

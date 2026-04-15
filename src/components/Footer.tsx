@@ -1,4 +1,5 @@
 import { FC } from "react";
+import { Link } from "react-router-dom";
 
 export const Footer: FC = () => {
   return (
@@ -10,14 +11,19 @@ export const Footer: FC = () => {
       <div className="absolute inset-0 editorial-blob scale-150 blur-3xl opacity-20"></div>
       <div className="font-headline text-[#fffcf2] text-5xl relative z-10">design.md</div>
       <div className="flex flex-wrap justify-center gap-12 relative z-10">
-        <a className="text-[#fffcf2]/60 font-body text-sm uppercase tracking-widest hover:text-white transition-opacity" href="#">Manifesto</a>
-        <a className="text-[#fffcf2]/60 font-body text-sm uppercase tracking-widest hover:text-white transition-opacity underline decoration-1" href="#">Terms</a>
-        <a className="text-[#fffcf2]/60 font-body text-sm uppercase tracking-widest hover:text-white transition-opacity" href="#">Privacy</a>
-        <a className="text-[#fffcf2]/60 font-body text-sm uppercase tracking-widest hover:text-white transition-opacity" href="#">Social</a>
+        <Link to="/showcase" className="text-[#fffcf2]/60 font-body text-sm uppercase tracking-widest hover:text-white transition-opacity">Showcase</Link>
+        <Link to="/upload" className="text-[#fffcf2]/60 font-body text-sm uppercase tracking-widest hover:text-white transition-opacity">Generate</Link>
+        <Link to="/dashboard" className="text-[#fffcf2]/60 font-body text-sm uppercase tracking-widest hover:text-white transition-opacity">Workspace</Link>
+        <a className="text-[#fffcf2]/60 font-body text-sm uppercase tracking-widest hover:text-white transition-opacity" href="mailto:abhijeetskakade04@gmail.com">Found a bug?</a>
       </div>
       <p className="font-headline text-2xl text-[#fffcf2]/80 max-w-md text-center italic relative z-10">"The digital monograph for modern design engineering."</p>
-      <div className="pt-8 text-xs font-body opacity-40 uppercase tracking-[0.3em] relative z-10">
-        © 2024 design.md curated works
+      <div className="pt-8 flex flex-col items-center gap-4 w-full relative z-10 border-t border-white/10 mt-8 max-w-4xl mx-auto">
+        <div className="text-xs font-body opacity-60 uppercase tracking-[0.2em]">
+          Built by <a href="https://experimentwith.abhijeetkakade.in/" target="_blank" rel="noreferrer" className="text-white hover:underline font-bold">Abhijeet</a>
+        </div>
+        <div className="text-[10px] font-body opacity-30 uppercase tracking-[0.3em]">
+          © {new Date().getFullYear()} design.md curated works
+        </div>
       </div>
     </footer>
   );

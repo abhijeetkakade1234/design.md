@@ -2,7 +2,7 @@ import { FC } from "react";
 
 export const HowItWorks: FC = () => {
   return (
-    <section className="py-32 bg-[#f5f4e4] relative overflow-hidden">
+    <section id="how-it-works" className="py-32 bg-[#f5f4e4] relative overflow-hidden">
       <div className="absolute top-0 right-1/4 w-32 h-32 dot-grid opacity-10"></div>
       <div className="absolute bottom-0 left-1/4 w-40 h-40 shape-ring opacity-[0.08]"></div>
       <div className="absolute top-1/2 right-10 w-12 h-12 bg-[#8B004B] rotate-45 opacity-5"></div>
