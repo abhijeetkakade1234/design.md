@@ -1,4 +1,4 @@
-import { FC, useEffect, useState, useRef } from "react";
+import { FC, useEffect, useMemo, useRef, useState } from "react";
 import { collection, query, where, getDocs, orderBy, limit, startAfter, QueryDocumentSnapshot } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { User } from "firebase/auth";
@@ -12,8 +12,34 @@ export interface DesignDocument {
   [key: string]: unknown;
 }
 
+interface ShowcaseDesign extends DesignDocument {
+  palette: string[];
+}
+
+const HEX_COLOR_REGEX = /#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b/g;
+
+const normalizeHexColor = (value: string) => {
+  const hex = value.replace("#", "").toUpperCase();
+  if (hex.length === 3) {
+    return `#${hex.split("").map(char => `${char}${char}`).join("")}`;
+  }
+  if (hex.length === 6) {
+    return `#${hex}`;
+  }
+  return null;
+};
+
+const extractPalette = (raw: string, max = 6) => {
+  const rawMatches = Array.from(raw.matchAll(HEX_COLOR_REGEX)).map(match => match[0]);
+  const normalizedMatches = rawMatches
+    .map(color => normalizeHexColor(color))
+    .filter((color): color is string => Boolean(color));
+  return Array.from(new Set(normalizedMatches)).slice(0, max);
+};
+
 export const ShowcasePage: FC = () => {
   const [designs, setDesigns] = useState<DesignDocument[]>([]);
+  const [colorQuery, setColorQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot | null>(null);
@@ -96,6 +122,40 @@ export const ShowcasePage: FC = () => {
     return raw.substring(0, 200).replace(/[*_#]/g, '') + '...';
   };
 
+  const showcaseDesigns = useMemo<ShowcaseDesign[]>(
+    () => designs.map(design => ({ ...design, palette: extractPalette(design.content || "") })),
+    [designs]
+  );
+
+  const trendingColors = useMemo(() => {
+    const counts = new Map<string, number>();
+    showcaseDesigns.forEach(design => {
+      design.palette.forEach(color => {
+        counts.set(color, (counts.get(color) || 0) + 1);
+      });
+    });
+
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 12)
+      .map(([color]) => color);
+  }, [showcaseDesigns]);
+
+  const normalizedColorQuery = normalizeHexColor(colorQuery.trim());
+  const fallbackQuery = colorQuery.trim().replace("#", "").toUpperCase();
+
+  const filteredDesigns = useMemo(() => {
+    if (!colorQuery.trim()) return showcaseDesigns;
+
+    return showcaseDesigns.filter(design => {
+      if (normalizedColorQuery) {
+        return design.palette.includes(normalizedColorQuery);
+      }
+      if (!fallbackQuery) return true;
+      return design.palette.some(color => color.replace("#", "").includes(fallbackQuery));
+    });
+  }, [showcaseDesigns, colorQuery, normalizedColorQuery, fallbackQuery]);
+
   return (
     <div className="pt-24 min-h-screen bg-[#fbfaed] relative overflow-hidden">
       {/* Editorial aesthetic background shapes */}
@@ -113,17 +173,69 @@ export const ShowcasePage: FC = () => {
           </p>
         </div>
 
+        <div className="mb-16 bg-white/70 backdrop-blur-sm border border-[#b9bba5]/30 rounded-[2.5rem] p-6 md:p-8 shadow-[0_20px_60px_-35px_rgba(139,0,75,0.55)] relative overflow-hidden">
+          <div className="absolute -top-16 -right-12 h-36 w-36 rounded-full bg-[#8B004B]/10 blur-2xl"></div>
+          <div className="absolute -bottom-20 -left-6 h-44 w-44 bg-gradient-to-br from-[#b52d6b]/20 to-transparent rounded-full"></div>
+          <div className="relative">
+            <p className="font-label uppercase tracking-[0.3em] text-xs text-[#8B004B] mb-3">Chromatic Filter</p>
+            <div className="flex flex-col lg:flex-row lg:items-center gap-5">
+              <div className="flex-1">
+                <input
+                  value={colorQuery}
+                  onChange={event => setColorQuery(event.target.value)}
+                  placeholder="#8B004B or 8B0"
+                  className="w-full bg-[#fffcf2] border border-[#b9bba5]/50 rounded-full px-6 py-4 font-mono text-sm tracking-wide text-[#1A0010] outline-none focus:border-[#8B004B] focus:ring-2 focus:ring-[#8B004B]/20 transition-all"
+                />
+              </div>
+              {colorQuery && (
+                <button
+                  onClick={() => setColorQuery("")}
+                  className="bg-[#1A0010] text-white px-6 py-3 rounded-full text-sm font-bold tracking-wider uppercase hover:bg-[#8B004B] transition-colors"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            {trendingColors.length > 0 && (
+              <div className="mt-6 flex flex-wrap gap-3">
+                {trendingColors.map(color => (
+                  <button
+                    key={color}
+                    onClick={() => setColorQuery(color)}
+                    className={`group inline-flex items-center gap-2 rounded-full px-3 py-2 border transition-all ${
+                      colorQuery.toUpperCase() === color
+                        ? "border-[#8B004B] bg-[#8B004B]/10"
+                        : "border-[#b9bba5]/40 bg-[#fffcf2] hover:border-[#8B004B]/40"
+                    }`}
+                  >
+                    <span className="h-4 w-4 rounded-full border border-black/10 shadow-inner" style={{ backgroundColor: color }} />
+                    <span className="font-mono text-xs text-[#1A0010]">{color}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            <p className="mt-4 text-sm font-body text-[#646653]">
+              Showing {filteredDesigns.length} of {showcaseDesigns.length} loaded blueprints. Scroll to load more in batches of 10.
+            </p>
+          </div>
+        </div>
+
         {loading ? (
           <div className="flex justify-center items-center py-32">
             <span className="material-symbols-outlined text-[#8B004B] animate-spin text-5xl">sync</span>
           </div>
-        ) : designs.length === 0 ? (
+        ) : showcaseDesigns.length === 0 ? (
           <div className="text-center text-[#80826e] py-32 border-b-2 border-t-2 border-[#b9bba5]/30">
             <p className="text-2xl font-headline italic">The archive is currently empty.</p>
           </div>
+        ) : filteredDesigns.length === 0 ? (
+          <div className="text-center text-[#80826e] py-20 border-y-2 border-[#b9bba5]/20">
+            <p className="text-2xl font-headline italic">No palettes match this color yet.</p>
+            <p className="text-sm mt-3 font-mono">Try a broader hex snippet like `8B` or clear the filter.</p>
+          </div>
         ) : (
           <div className="space-y-16">
-            {designs.map((design, index) => {
+            {filteredDesigns.map((design, index) => {
               const isEven = index % 2 === 0;
               const title = extractTitle(design.content || "");
               const description = extractDescription(design.content || "");
@@ -155,6 +267,23 @@ export const ShowcasePage: FC = () => {
                         {description}
                         <span className="absolute -left-3 top-0 text-3xl text-[#8B004B] font-headline">"</span>
                       </div>
+                      {design.palette.length > 0 && (
+                        <div className="mt-6 flex flex-wrap gap-2">
+                          {design.palette.map(color => (
+                            <button
+                              key={`${design.id}-${color}`}
+                              onClick={event => {
+                                event.preventDefault();
+                                setColorQuery(color);
+                              }}
+                              className="inline-flex items-center gap-2 rounded-full border border-[#b9bba5]/40 bg-white/90 px-3 py-1.5 hover:border-[#8B004B]/50 transition-colors"
+                            >
+                              <span className="h-3.5 w-3.5 rounded-full border border-black/10" style={{ backgroundColor: color }} />
+                              <span className="font-mono text-xs text-[#1A0010]">{color}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                       
                       <div className="mt-8 flex items-center text-[#b52d6b] font-bold tracking-widest text-sm uppercase opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
                         Explore Blueprint <span className="material-symbols-outlined ml-2 text-md">arrow_forward</span>
@@ -170,7 +299,7 @@ export const ShowcasePage: FC = () => {
                 <span className="material-symbols-outlined text-[#8B004B] animate-spin text-4xl opacity-50">sync</span>
               </div>
             )}
-            {!hasMore && designs.length > 0 && (
+            {!hasMore && showcaseDesigns.length > 0 && (
               <div className="pt-16 pb-8 text-center text-[#b9bba5] font-accent italic text-lg">
                 End of the public archive.
               </div>

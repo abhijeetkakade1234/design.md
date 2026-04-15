@@ -4,7 +4,12 @@ import ReactMarkdown from "react-markdown";
 import { Copy, Download, Check, Edit2, Play } from "lucide-react";
 import { motion } from "framer-motion";
 
-export function Editor({ content }: { content: string }) {
+interface EditorProps {
+  content: string;
+  allowEditing?: boolean;
+}
+
+export function Editor({ content, allowEditing = false }: EditorProps) {
   const [markdown, setMarkdown] = useState(content);
   const [isEditing, setIsEditing] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -40,13 +45,15 @@ export function Editor({ content }: { content: string }) {
             <p className="text-text-secondary">Your AI-ready design specification is ready.</p>
           </div>
           <div className="flex gap-4">
-            <button 
-              onClick={() => setIsEditing(!isEditing)}
-              className="btn-secondary flex items-center gap-2"
-            >
-              {isEditing ? <Play className="w-4 h-4" /> : <Edit2 className="w-4 h-4" />}
-              {isEditing ? "Preview" : "Edit MD"}
-            </button>
+            {allowEditing && (
+              <button 
+                onClick={() => setIsEditing(!isEditing)}
+                className="btn-secondary flex items-center gap-2"
+              >
+                {isEditing ? <Play className="w-4 h-4" /> : <Edit2 className="w-4 h-4" />}
+                {isEditing ? "Preview" : "Edit MD"}
+              </button>
+            )}
             <button onClick={copyToClipboard} className="btn-secondary flex items-center gap-2">
               {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
               Copy
@@ -66,7 +73,7 @@ export function Editor({ content }: { content: string }) {
                 <span>MARKDOWN</span>
               </div>
               
-              {isEditing ? (
+              {allowEditing && isEditing ? (
                 <textarea
                   value={markdown}
                   onChange={(e) => setMarkdown(e.target.value)}

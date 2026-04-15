@@ -1,18 +1,51 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const extractStatusCode = (error: unknown) => {
+  const withStatus = error as { status?: number };
+  if (typeof withStatus?.status === "number") return withStatus.status;
+
+  const message = error instanceof Error ? error.message : String(error);
+  const match = message.match(/\[(\d{3})\s*\]/);
+  return match ? Number(match[1]) : undefined;
+};
+
+const getErrorText = (error: unknown) => {
+  if (error instanceof Error) return error.message;
+  return String(error);
+};
+
+const formatUserFriendlyError = (errors: unknown[]) => {
+  const statuses = errors.map(extractStatusCode);
+  const had429 = statuses.includes(429);
+  const had503 = statuses.includes(503);
+
+  if (had429) {
+    return "Gemini API quota is exceeded for your key(s). Add a billed key or retry after quota resets.";
+  }
+
+  if (had503) {
+    return "Gemini is experiencing temporary high demand right now. Please retry in a minute.";
+  }
+
+  return "The AI backend is currently unavailable. Please try again later.";
+};
+
 export async function analyzeUI(images: string[]): Promise<string> {
   const keys = [
     import.meta.env.VITE_GEMINI_API_KEY,
-    import.meta.env.VITE_GEMINI_API_KEY_1
+    import.meta.env.VITE_GEMINI_API_KEY_1,
+    import.meta.env.VITE_GEMINI_API_KEY_2,
+    import.meta.env.VITE_GEMINI_API_KEY_3
   ].filter(Boolean);
 
   if (keys.length === 0) {
     throw new Error("Missing VITE_GEMINI_API_KEY variables in environment");
   }
 
-  // Rotate between available keys randomly to distribute the rate limits
-  const apiKey = keys[Math.floor(Math.random() * keys.length)];
-  const genAI = new GoogleGenerativeAI(apiKey);
+  // Shuffle the key order so retries distribute load more evenly.
+  const shuffledKeys = [...keys].sort(() => Math.random() - 0.5);
 
   const prompt = `You are **design.md** — an autonomous UI architect and world-class Design Systems Engineer, trained to reverse-engineer the creative soul of any interface with surgical precision.
 
@@ -192,30 +225,51 @@ Return the output as raw, beautifully structured Markdown. Do NOT wrap the entir
     };
   });
 
-  // We loop through models with the highest free RPM limits first to ensure we don't hit a wall
+  // Keep this list aligned with currently available model IDs.
   const availableModels = [
-    "gemini-2.0-flash", // 15 RPM
-    "gemini-2.5-flash", // 10 RPM
-    "gemini-1.5-pro",   // 2 RPM
-    "gemini-1.5-flash"  // 15 RPM
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+    "gemini-2.5-pro"
   ];
 
-  let lastError;
+  const errors: unknown[] = [];
 
   for (const modelName of availableModels) {
-    try {
-      console.log("Attempting generation with: " + modelName);
-      const model = genAI.getGenerativeModel({ model: modelName });
-      const result = await model.generateContent([prompt, ...imageParts]);
-      const response = await result.response;
-      return response.text();
-    } catch (error) {
-      console.warn("Model " + modelName + " failed. Failing over...", error);
-      lastError = error;
+    for (const apiKey of shuffledKeys) {
+      try {
+        console.log("Attempting generation with:", modelName);
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent([prompt, ...imageParts]);
+        const response = await result.response;
+        return response.text();
+      } catch (error) {
+        const status = extractStatusCode(error);
+        const message = getErrorText(error);
+        console.warn(`Model ${modelName} failed on current key (status ${status ?? "unknown"}).`, error);
+        errors.push(error);
+
+        // Brief pause for transient backend pressure before the next attempt.
+        if (status === 503) {
+          await sleep(600);
+        }
+
+        // 404 means this model ID/method is unavailable for this API version.
+        if (status === 404) {
+          break;
+        }
+
+        // If all attempts fail, continue through fallback matrix.
+        if (status === 429 && /retry/i.test(message)) {
+          // Don't block too long; try other key/model combinations quickly.
+          await sleep(300);
+        }
+      }
     }
   }
 
   // If all fallback loops fail
-  console.error("All Gemini API models failed.", lastError);
-  throw new Error("The AI backend is currently overwhelmed. Please try again later.");
+  const userMessage = formatUserFriendlyError(errors);
+  console.error("All Gemini API models failed.", errors[errors.length - 1]);
+  throw new Error(userMessage);
 }

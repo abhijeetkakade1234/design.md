@@ -101,7 +101,7 @@ export const DesignViewPage: FC<DesignViewPageProps> = ({ user }) => {
           </div>
         </div>
       </div>
-      <Editor content={content} />
+      <Editor content={content} allowEditing={false} />
     </div>
   );
 };
