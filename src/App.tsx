@@ -34,17 +34,19 @@ function App() {
     <div className="min-h-screen bg-surface text-on-surface font-body overflow-x-hidden relative">
       <Navbar user={user} onLogout={handleLogout} />
 
-      <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<LandingPage user={user} />} />
-          <Route path="/login" element={<LoginPage user={user} />} />
-          <Route path="/upload" element={<UploadPage user={user} />} />
-          <Route path="/dashboard" element={<DashboardPage user={user} />} />
-          <Route path="/showcase" element={<ShowcasePage />} />
-          <Route path="/design/:id" element={<DesignViewPage user={user} />} />
-          <Route path="/fallback" element={<FallbackResultsPage />} />
-        </Routes>
-      </AnimatePresence>
+      <main>
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
+            <Route path="/" element={<LandingPage user={user} />} />
+            <Route path="/login" element={<LoginPage user={user} />} />
+            <Route path="/upload" element={<UploadPage user={user} />} />
+            <Route path="/dashboard" element={<DashboardPage user={user} />} />
+            <Route path="/showcase" element={<ShowcasePage />} />
+            <Route path="/design/:id" element={<DesignViewPage user={user} />} />
+            <Route path="/fallback" element={<FallbackResultsPage />} />
+          </Routes>
+        </AnimatePresence>
+      </main>
     </div>
   );
 }

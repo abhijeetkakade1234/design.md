@@ -4,6 +4,7 @@ import { doc, getDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { User } from "firebase/auth";
 import { Editor } from "../components/Editor";
+import { SEO } from "../components/SEO";
 
 interface DesignViewPageProps {
   user: User | null;
@@ -56,9 +57,29 @@ export const DesignViewPage: FC<DesignViewPageProps> = ({ user }) => {
     }
   };
 
+  const extractTitle = (raw: string) => {
+    const h1Match = raw.match(/^#\s+(.*)/m);
+    if (h1Match && !h1Match[1].includes('Overview')) return h1Match[1].trim();
+    const identityMatch = raw.match(/(?:Creative Identity|Creative North Star).*?[:*]+\s*["']?([^"'\n\r*]+)["']?/i);
+    if (identityMatch && identityMatch[1] && identityMatch[1].length < 50) return identityMatch[1].trim();
+    return "Design Blueprint";
+  };
+
+  const extractDescription = (raw: string) => {
+    const lines = raw.split('\n');
+    for (const l of lines) {
+      const text = l.trim();
+      if (text.length > 80 && !text.startsWith('#')) {
+        return text.replace(/[*_`]/g, '').substring(0, 160) + '...';
+      }
+    }
+    return raw.substring(0, 160).replace(/[*_#]/g, '') + '...';
+  };
+
   if (loading) {
     return (
       <div className="pt-24 min-h-screen bg-[#fffcf2] flex items-center justify-center">
+        <SEO title="Loading..." />
         <span className="material-symbols-outlined text-[#8B004B] animate-spin text-4xl">sync</span>
       </div>
     );
@@ -67,6 +88,7 @@ export const DesignViewPage: FC<DesignViewPageProps> = ({ user }) => {
   if (!content) {
     return (
       <div className="pt-24 min-h-screen bg-[#fffcf2] flex flex-col items-center justify-center text-center">
+        <SEO title="404 - Not Found" />
         <h1 className="text-4xl font-headline font-bold text-[#1a0010] mb-4">404 - Document Not Found</h1>
         <p className="text-[#646653] font-body mb-8">This design may have been deleted by the author.</p>
         <Link to="/showcase" className="text-[#8B004B] font-bold underline">Go to Showcase</Link>
@@ -75,33 +97,43 @@ export const DesignViewPage: FC<DesignViewPageProps> = ({ user }) => {
   }
 
   const isOwner = user?.uid === authorId;
+  const pageTitle = extractTitle(content);
+  const pageDescription = extractDescription(content);
 
   return (
-    <div className="pt-24 min-h-screen bg-[#fffcf2]">
-      <div className="max-w-7xl mx-auto px-8 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <button onClick={() => navigate("/showcase")} className="text-[#b52d6b] font-medium flex items-center gap-2 hover:underline">
-            <span className="material-symbols-outlined text-sm">arrow_back</span> Back to Gallery
-          </button>
-          
-          <div className="flex items-center gap-6">
-            <div className="text-sm font-label uppercase tracking-widest text-[#646653]">
-              Result: <span className="text-[#b52d6b] font-bold">design.md</span>
-            </div>
+    <>
+      <SEO 
+        title={pageTitle}
+        description={pageDescription}
+        ogType="article"
+        canonical={`/design/${id}`}
+      />
+      <div className="pt-24 min-h-screen bg-[#fffcf2]">
+        <div className="max-w-7xl mx-auto px-8 py-8">
+          <div className="flex items-center justify-between mb-8">
+            <button onClick={() => navigate("/showcase")} className="text-[#b52d6b] font-medium flex items-center gap-2 hover:underline">
+              <span className="material-symbols-outlined text-sm">arrow_back</span> Back to Gallery
+            </button>
             
-            {isOwner && (
-              <button 
-                onClick={handleDelete}
-                className="bg-red-50 text-red-600 border border-red-200 px-4 py-2 rounded-md hover:bg-red-100 flex items-center gap-2 transition-colors font-medium text-sm shadow-sm"
-              >
-                <span className="material-symbols-outlined text-sm">delete</span>
-                Delete forever
-              </button>
-            )}
+            <div className="flex items-center gap-6">
+              <div className="text-sm font-label uppercase tracking-widest text-[#646653]">
+                Result: <span className="text-[#b52d6b] font-bold">design.md</span>
+              </div>
+              
+              {isOwner && (
+                <button 
+                  onClick={handleDelete}
+                  className="bg-red-50 text-red-600 border border-red-200 px-4 py-2 rounded-md hover:bg-red-100 flex items-center gap-2 transition-colors font-medium text-sm shadow-sm"
+                >
+                  <span className="material-symbols-outlined text-sm">delete</span>
+                  Delete forever
+                </button>
+              )}
+            </div>
           </div>
         </div>
+        <Editor content={content} allowEditing={false} />
       </div>
-      <Editor content={content} allowEditing={false} />
-    </div>
+    </>
   );
 };

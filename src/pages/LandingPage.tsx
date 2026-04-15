@@ -8,6 +8,7 @@ import { BentoGrid } from "../components/BentoGrid";
 import { Footer } from "../components/Footer";
 import { useNavigate } from "react-router-dom";
 import { User } from "firebase/auth";
+import { SEO } from "../components/SEO";
 
 interface LandingPageProps {
   user: User | null;
@@ -30,14 +31,21 @@ export const LandingPage: FC<LandingPageProps> = ({ user }) => {
   };
 
   return (
-    <div>
-      <Hero onGoToUpload={handleAction} />
+    <>
+      <SEO 
+        title="AI-Powered Design Intelligence"
+        description="Automatically extract design tokens, layout logic, and structural semantics from your screenshots into clean, actionable markdown."
+        keywords="AI, UI to Markdown, Design Tokens, Front-end development, design.md"
+      />
+      <div>
+        <Hero onGoToUpload={handleAction} />
       <UploadDisplay onGoToUpload={handleAction} />
       <ProcessingDisplay />
       <OutputDisplay />
       <HowItWorks />
       <BentoGrid />
       <Footer />
-    </div>
+      </div>
+    </>
   );
 };

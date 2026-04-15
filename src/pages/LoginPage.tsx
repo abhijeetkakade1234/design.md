@@ -2,6 +2,7 @@ import { FC, useEffect, useState } from "react";
 import { signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, User } from "firebase/auth";
 import { auth, googleProvider } from "../lib/firebase";
 import { useNavigate } from "react-router-dom";
+import { SEO } from "../components/SEO";
 
 interface LoginPageProps {
   user: User | null;
@@ -64,7 +65,13 @@ export const LoginPage: FC<LoginPageProps> = ({ user }) => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-[#fffcf2]">
+    <>
+      <SEO 
+        title="Sign In"
+        description="Join the collective of developers accelerating their workflow by perfectly capturing visual identities from pixels to markdown."
+        canonical="/login"
+      />
+      <div className="min-h-screen flex flex-col md:flex-row bg-[#fffcf2]">
       {/* ─── LEFT SIDE (BRANDING) ─── */}
       <div className="w-full md:w-1/2 bg-[#8B004B] text-white flex flex-col justify-center p-12 md:p-24 relative overflow-hidden">
         {/* Decorative elements */}
@@ -156,9 +163,10 @@ export const LoginPage: FC<LoginPageProps> = ({ user }) => {
           
           <p className="text-center text-sm text-[#80826e] mt-12">
             By signing in, you agree to our Terms of Service and Privacy Policy. All components generated are CC0.
-          </p>
-        </div>
+        </p>
       </div>
     </div>
-  );
+  </div>
+</>
+);
 };

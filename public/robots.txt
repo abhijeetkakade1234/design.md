@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Allow: /showcase
+Allow: /login
+Disallow: /dashboard
+Disallow: /design/*
+
+Sitemap: https://designwith.abhijeetkakade.in/sitemap.xml
